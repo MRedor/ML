@@ -27,17 +27,8 @@ def train_test_split(X, y, ratio):
     return X[:train], y[:train], X[train:], y[train:]
 
 
-def get_set_of_labels(list):
-    result = []
-    for element in list:
-        exists = False
-        for existing in result:
-            if element == existing:
-                exists = True
-        if (not exists):
-            result.append(element)
-    result.sort()
-    return result
+def get_set_of_labels(labels):
+    return sorted(list(set(labels)))
 
 
 def get_precision(y_pred, y_true):
@@ -207,7 +198,7 @@ class Tree:
     def query(self, point, heap, dimension, k=1):
         if len(self.points) <= self.leaf_size:
             for i in range(0, len(self.points)):
-                heapq.heappush(heap, {distance(point, self.points[i][0]), self.points[i][1]})
+                heapq.heappush(heap, (distance(point, self.points[i][0]), self.points[i][1]))
             return
         self.points = sorted(self.points, key=lambda x: x[0][dimension])
         half = len(self.points) // 2
@@ -290,7 +281,7 @@ class KNearest:
         return numpy.argmax(self.predict_proba(X), axis=1)
 
 
-X_train = numpy.random.randn(4, 3)
+X_train = numpy.random.randn(100, 3)
 X_test = numpy.random.randn(10, 3)
 tree = KDTree(X_train, leaf_size=2)
 predicted = tree.query(X_test, k=4, return_distance=False)
