@@ -158,7 +158,10 @@ def plot_roc_curve(X_train, y_train, X_test, y_test, max_k=30):
 
 class KDTree:
     def __init__(self, X, leaf_size=40):
-        self.tree = Tree(X, leaf_size, 0)
+        new_X = []
+        for i in range(0, len(X)):
+            new_X.append((X[i], i))
+        self.tree = Tree(new_X, leaf_size, 0)
 
     # Возвращает i если return_distance = False, иначе возвращает пару (i, d)
     # i - массив ближайших соседей.
@@ -190,41 +193,34 @@ class KDTree:
 class Tree:
     def __init__(self, X, leaf_size, dimension, left_index=0):
         self.points = X
-        self.left_index = left_index
-        self.right_index = left_index + len(X) - 1
         self.leaf_size = leaf_size
         if len(X) <= leaf_size:
             return
         else:
-            X = sorted(X, key=lambda x: x[dimension])
+            X = sorted(X, key=lambda x: x[0][dimension])
             self.points = X
-            next_dimension = (dimension + 1) % len(X[0])
+            next_dimension = (dimension + 1) % len(X[0][0])
             half = len(X) // 2
-            self.left = Tree(X[:len(X) - half - 1], leaf_size, next_dimension, 0)
+            self.left = Tree(X[:len(X) - half], leaf_size, next_dimension, 0)
             self.right = Tree(X[half:], leaf_size, next_dimension, half)
 
     def query(self, point, heap, dimension, k=1):
         if len(self.points) <= self.leaf_size:
             for i in range(0, len(self.points)):
-                heapq.heappush(heap, {distance(point, self.points[i]), i + self.left_index})
+                heapq.heappush(heap, {distance(point, self.points[i][0]), self.points[i][1]})
             return
+        self.points = sorted(self.points, key=lambda x: x[0][dimension])
         half = len(self.points) // 2
         next_dimension = (dimension + 1) % len(point)
-        split_line = (self.points[half - 1][dimension] + self.points[half][dimension]) / 2
+        split_line = (self.points[half - 1][0][dimension] + self.points[half][0][dimension]) / 2
         in_left = (point[dimension] <= split_line)
         if in_left:
             self.left.query(point, heap, next_dimension, k)
         else:
             self.right.query(point, heap, next_dimension, k)
 
-        if len(heap) < k:
-            if in_left:
-                self.right.query(point, heap, next_dimension, k)
-            else:
-                self.left.query(point, heap, next_dimension, k)
-
         k_distance = distance(point, get_kth_point(min(k, len(heap)), heap))
-        if k_distance > abs(point[dimension] - split_line):
+        if (len(heap) < k) or (k_distance > abs(point[dimension] - split_line)):
             if in_left:
                 self.right.query(point, heap, next_dimension, k)
             else:
@@ -294,7 +290,7 @@ class KNearest:
         return numpy.argmax(self.predict_proba(X), axis=1)
 
 
-X_train = numpy.random.randn(100, 3)
+X_train = numpy.random.randn(4, 3)
 X_test = numpy.random.randn(10, 3)
 tree = KDTree(X_train, leaf_size=2)
 predicted = tree.query(X_test, k=4, return_distance=False)
@@ -307,7 +303,8 @@ else:
     if errors > 0:
         print("Encounted", errors, "errors")
 
-X, y = read_spam_dataset("spam.csv")
-X_train, y_train, X_test, y_test = train_test_split(X, y, 0.9)
-plot_precision_recall(X_train, y_train, X_test, y_test, max_k=20)
-plot_roc_curve(X_train, y_train, X_test, y_test, max_k=20)
+#X, y = read_spam_dataset("spam.csv")
+#X_train, y_train, X_test, y_test = train_test_split(X, y, 0.9)
+#plot_precision_recall(X_train, y_train, X_test, y_test, max_k=20)
+#plot_roc_curve(X_train, y_train, X_test, y_test, max_k=20)
+
