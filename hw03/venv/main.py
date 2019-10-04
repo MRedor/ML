@@ -108,11 +108,6 @@ class DecisionTreeClassifier:
                 right_X.append(X[data[j][0]])
                 right_y.append(y[data[j][0]])
 
-        left = DecisionTreeClassifier(self.criterion_str, self.max_depth - 1, self.min_samples_leaf)
-        left.build(left_X, left_y)
-        right = DecisionTreeClassifier(self.criterion_str, self.max_depth - 1, self.min_samples_leaf)
-        right.build(right_X, right_y)
-
         return DecisionTreeNode(split_dim, split_value,
                                 self.build(left_X, left_y, depth + 1),
                                 self.build(right_X, right_y, depth + 1))
