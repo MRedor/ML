@@ -46,7 +46,6 @@ class DecisionTreeLeaf:
 class DecisionTreeNode:
     def __init__(self, split_dim, left, right):
         self.split_dim = split_dim
-        self.split_value = split_value
         self.left = left
         self.right = right
 
@@ -60,7 +59,7 @@ class DecisionTree:
         else:
             self.criterion = entropy
         if max_depth is None:
-            self.max_depth = 0
+            self.max_depth = len(X)
         else:
             self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
@@ -86,7 +85,7 @@ class DecisionTree:
         right_y = []
 
         dims = []
-        for i in range(len(X)):
+        for i in range(len(X[0])):
             dims.append(i)
         numpy.random.shuffle(dims)
         dims = dims[:self.max_features]
@@ -112,7 +111,7 @@ class DecisionTree:
             return DecisionTreeLeaf(y)
 
         for j in range(len(X)):
-            if X[j][dim] == 0:
+            if X[j][split_dim] == 0:
                 left_X.append(X[j])
                 left_y.append(y[j])
             else:
@@ -144,7 +143,7 @@ class DecisionTree:
     def get_proba(self, x, node):
         if isinstance(node, DecisionTreeLeaf):
             return node.proba
-        if x[node.split_dim] < node.split_value:
+        if x[node.split_dim] == 0:
             return self.get_proba(x, node.left)
         else:
             return self.get_proba(x, node.right)
@@ -249,8 +248,7 @@ rfc.fit(X, y)
 print("Accuracy:", np.mean(rfc.predict(X) == y))
 print("Importance:", feature_importance(rfc))
 
-
-# Task 4
+#Task 4
 def read_dataset(path):
     dataframe = pandas.read_csv(path, header=0)
     dataset = dataframe.values.tolist()
